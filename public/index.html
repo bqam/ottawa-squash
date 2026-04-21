@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#0a0a0a" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Court T" />
+<title>Court T · Squash</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-elev: #141414;
+    --bg-card: #1a1a1a;
+    --line: #252525;
+    --line-soft: #1e1e1e;
+    --ink: #f5f5f0;
+    --ink-dim: #8a8a85;
+    --ink-faint: #5a5a55;
+    --accent: #e63946;
+    --accent-glow: rgba(230, 57, 70, 0.3);
+    --gold: #d4a24c;
+    --green: #5f9e5f;
+    --blue: #5b8bc9;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+  body {
+    font-family: 'Manrope', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 15px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at top, rgba(230, 57, 70, 0.04) 0%, transparent 45%),
+      radial-gradient(ellipse at bottom left, rgba(212, 162, 76, 0.03) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  #app { position: relative; height: 100%; display: flex; flex-direction: column; z-index: 1; max-width: 500px; margin: 0 auto; }
+
+  header {
+    padding: calc(var(--safe-top) + 16px) 20px 14px;
+    border-bottom: 1px solid var(--line-soft);
+    background: linear-gradient(180deg, rgba(20,20,20,0.95), rgba(10,10,10,0.85));
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; z-index: 10;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 0.08em; display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 28px; height: 28px; position: relative; display: inline-block; }
+  .logo-mark::before, .logo-mark::after { content: ''; position: absolute; background: var(--accent); border-radius: 1px; }
+  .logo-mark::before { top: 4px; left: 50%; width: 3px; height: 20px; transform: translateX(-50%); }
+  .logo-mark::after  { top: 4px; left: 4px; width: 20px; height: 3px; }
+  .header-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    color: var(--ink-faint); letter-spacing: 0.1em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); }
+  .conn-dot.live { background: var(--green); box-shadow: 0 0 6px rgba(95,158,95,0.6); }
+  .conn-dot.off { background: var(--accent); }
+
+  main { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 0 16px 100px; }
+  main::-webkit-scrollbar { display: none; }
+
+  .view { display: none; animation: fadeIn 0.3s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 13px;
+    letter-spacing: 0.18em; color: var(--ink-dim);
+    margin: 24px 4px 12px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title::before { content: ''; display: inline-block; width: 14px; height: 2px; background: var(--accent); margin-right: 8px; vertical-align: middle; }
+  .section-title-inner { display: flex; align-items: center; }
+
+  .card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 10px; }
+
+  .btn {
+    font-family: 'Manrope', sans-serif; font-weight: 600;
+    border: none; cursor: pointer; display: inline-flex;
+    align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 18px; border-radius: 10px; font-size: 14px;
+    letter-spacing: 0.02em; transition: transform 0.1s, background 0.15s; white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.96); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:active { background: #c82d3a; }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn-ghost:active { background: var(--bg-elev); }
+  .btn-sm { padding: 8px 12px; font-size: 13px; }
+  .btn-full { width: 100%; }
+
+  input, select {
+    font-family: inherit; font-size: 15px;
+    background: var(--bg-elev); border: 1px solid var(--line);
+    color: var(--ink); padding: 12px 14px; border-radius: 10px;
+    width: 100%; outline: none; transition: border-color 0.15s;
+    user-select: text; -webkit-user-select: text;
+  }
+  input:focus, select:focus { border-color: var(--accent); background: var(--bg-card); }
+  input[type="number"] { font-family: 'JetBrains Mono', monospace; }
+  label { display: block; font-size: 12px; color: var(--ink-dim); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+  .field { margin-bottom: 14px; }
+
+  .player-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px; background: var(--bg-card);
+    border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px;
+  }
+  .player-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+    color: white; flex-shrink: 0; letter-spacing: 0.05em;
+  }
+  .player-info { flex: 1; min-width: 0; }
+  .player-name { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .player-meta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); margin-top: 2px; letter-spacing: 0.03em; }
+  .rating-badge {
+    font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--gold);
+    letter-spacing: 0.05em; padding: 2px 10px; border: 1px solid var(--gold);
+    border-radius: 6px; background: rgba(212, 162, 76, 0.08);
+  }
+  .avail-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink-faint); transition: background 0.2s; flex-shrink: 0; }
+  .avail-dot.on { background: var(--green); box-shadow: 0 0 8px rgba(95, 158, 95, 0.5); }
+
+  .match-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 10px; position: relative; overflow: hidden; }
+  .match-card.live { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 24px -8px var(--accent-glow); }
+  .match-card.live::before {
+    content: 'LIVE'; position: absolute; top: 12px; right: 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.2em; color: var(--accent); padding: 3px 7px;
+    border: 1px solid var(--accent); border-radius: 4px; animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .match-card.done { opacity: 0.78; }
+  .match-card.done::before { content: '✓'; position: absolute; top: 12px; right: 14px; color: var(--green); font-size: 16px; font-weight: 700; }
+  .match-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .match-court { padding: 2px 8px; background: var(--bg-elev); border: 1px solid var(--line); border-radius: 4px; color: var(--ink); font-size: 10px; }
+  .match-players { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .match-player { text-align: center; }
+  .match-player .name { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.04em; line-height: 1.1; word-break: break-word; }
+  .match-player .rating { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); margin-top: 4px; }
+  .match-vs { font-family: 'Bebas Neue', sans-serif; font-size: 14px; color: var(--accent); letter-spacing: 0.15em; padding: 6px 10px; border: 1px solid var(--accent); border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; }
+  .match-score { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--gold); margin-top: 4px; }
+  .match-actions { display: flex; gap: 8px; margin-top: 6px; }
+  .match-actions .btn { flex: 1; }
+
+  .court-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 8px; }
+  .court-icon { width: 40px; height: 40px; border-radius: 8px; background: var(--bg-elev); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--accent); letter-spacing: 0.02em; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--ink-dim); }
+  .empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--ink); letter-spacing: 0.05em; margin-bottom: 6px; }
+  .empty-sub { font-size: 13px; }
+
+  nav.tabbar {
+    position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 500px;
+    background: rgba(20, 20, 20, 0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 8px 0 calc(var(--safe-bottom) + 8px); z-index: 20;
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px; cursor: pointer; color: var(--ink-faint); transition: color 0.15s; background: transparent; border: none; }
+  .tab svg { width: 22px; height: 22px; stroke-width: 1.8; }
+  .tab-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .tab.active { color: var(--accent); }
+  .tab:active { transform: scale(0.92); }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 100; display: none; align-items: flex-end; justify-content: center; animation: fadeInOverlay 0.2s ease; }
+  .modal-overlay.active { display: flex; }
+  @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+  .modal { background: var(--bg-elev); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; max-height: 88vh; overflow-y: auto; padding: 20px 20px calc(var(--safe-bottom) + 20px); animation: slideUp 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .modal::-webkit-scrollbar { display: none; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; background: var(--line); border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 0.06em; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+  .modal-title::before { content: ''; width: 4px; height: 20px; background: var(--accent); }
+
+  .setup-card { background: linear-gradient(135deg, var(--bg-card) 0%, rgba(230, 57, 70, 0.05) 100%); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin: 16px 0; }
+  .setup-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .setup-sub { font-size: 13px; color: var(--ink-dim); margin-bottom: 16px; }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-dim); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--ink); letter-spacing: 0.02em; line-height: 1; }
+  .stat-value .accent { color: var(--accent); }
+
+  .rank-row { display: grid; grid-template-columns: 32px 40px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 6px; }
+  .rank-num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--ink-dim); text-align: center; }
+  .rank-row:nth-child(1) .rank-num { color: var(--gold); }
+  .rank-row:nth-child(2) .rank-num { color: #c0c0c0; }
+  .rank-row:nth-child(3) .rank-num { color: #cd7f32; }
+  .rank-stats { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); text-align: right; }
+  .rank-stats .w { color: var(--green); }
+  .rank-stats .l { color: var(--accent); }
+
+  .fab { position: fixed; bottom: calc(var(--safe-bottom) + 80px); right: 20px; width: 56px; height: 56px; border-radius: 28px; background: var(--accent); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 8px 24px -4px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.3); z-index: 15; transition: transform 0.15s; }
+  .fab:active { transform: scale(0.92); }
+  .fab svg { width: 26px; height: 26px; stroke-width: 2.5; }
+
+  .toast { position: fixed; top: calc(var(--safe-top) + 12px); left: 50%; transform: translateX(-50%) translateY(-120%); background: var(--ink); color: var(--bg); padding: 10px 18px; border-radius: 24px; font-size: 13px; font-weight: 600; z-index: 200; transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.err { background: var(--accent); color: white; }
+
+  .timer-display { font-family: 'Bebas Neue', sans-serif; font-size: 64px; letter-spacing: 0.05em; text-align: center; color: var(--ink); padding: 16px 0 8px; line-height: 1; }
+  .timer-label { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-dim); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+
+  .score-input-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin-bottom: 12px; }
+  .score-input-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.04em; text-align: center; }
+  .score-input input { font-family: 'Bebas Neue', sans-serif; font-size: 28px; text-align: center; padding: 12px 8px; }
+  .score-input-dash { color: var(--accent); font-family: 'Bebas Neue', sans-serif; font-size: 24px; text-align: center; }
+
+  .divider { height: 1px; background: var(--line); margin: 16px 0; }
+
+  /* login screen */
+  .login-screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; background: var(--bg); z-index: 300; }
+  .login-mark { font-family: 'Bebas Neue', sans-serif; font-size: 44px; letter-spacing: 0.12em; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; }
+  .login-mark .logo-mark { width: 36px; height: 36px; }
+  .login-mark .logo-mark::before { width: 4px; height: 26px; top: 5px; }
+  .login-mark .logo-mark::after  { width: 26px; height: 4px; top: 5px; left: 5px; }
+  .login-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-dim); margin-bottom: 32px; }
+  .login-box { width: 100%; max-width: 360px; }
+
+  @media (max-width: 360px) { .match-player .name { font-size: 17px; } .stat-value { font-size: 26px; } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login">
+  <div class="login-mark">
+    <span class="logo-mark"></span>
+    <span>COURT T</span>
+  </div>
+  <div class="login-sub">SHARED SQUASH SESSIONS</div>
+  <div class="login-box">
+    <div class="field">
+      <label>GROUP CODE</label>
+      <input id="code-input" type="text" placeholder="enter your crew's code" autocapitalize="off" autocorrect="off" />
+    </div>
+    <button class="btn btn-primary btn-full" id="code-submit">CONTINUE</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+  <header>
+    <div class="logo">
+      <span class="logo-mark"></span>
+      <span>COURT T</span>
+    </div>
+    <div class="header-sub" id="headerSub">
+      <span class="conn-dot" id="connDot"></span>
+      <span id="connText">CONNECTING</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="view active" id="view-session"><div id="session-content"></div></section>
+    <section class="view" id="view-players"><div class="section-title"><span class="section-title-inner">ROSTER</span></div><div id="players-list"></div></section>
+    <section class="view" id="view-courts"><div class="section-title"><span class="section-title-inner">COURTS</span></div><div id="courts-list"></div></section>
+    <section class="view" id="view-stats"><div class="section-title"><span class="section-title-inner">RANKINGS</span></div><div id="stats-content"></div></section>
+  </main>
+
+  <button class="fab" id="fab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>
+  </button>
+
+  <nav class="tabbar">
+    <button class="tab active" data-view="session">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      <span class="tab-label">PLAY</span>
+    </button>
+    <button class="tab" data-view="players">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-2a4 4 0 100-8 4 4 0 000 8zm6-4a3 3 0 100-6 3 3 0 000 6zm-12 0a3 3 0 100-6 3 3 0 000 6z"/></svg>
+      <span class="tab-label">PLAYERS</span>
+    </button>
+    <button class="tab" data-view="courts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16v12H4zM4 12h16M12 6v12"/></svg>
+      <span class="tab-label">COURTS</span>
+    </button>
+    <button class="tab" data-view="stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19V6l12-3v13M9 19a3 3 0 11-6 0 3 3 0 016 0zm12-3a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <span class="tab-label">STATS</span>
+    </button>
+  </nav>
+</div>
+
+<div class="modal-overlay" id="modal"><div class="modal" id="modal-body"><div class="modal-handle"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+ *  COURT T — client
+ * ===================================================================== */
+
+const CODE_KEY = 'court-t-code-v1';
+let CODE = localStorage.getItem(CODE_KEY) || '';
+
+let state = { players: [], courts: [], matches: [], session: null };
+let currentView = 'session';
+let eventSource = null;
+
+const $  = (q, el = document) => el.querySelector(q);
+const $$ = (q, el = document) => [...el.querySelectorAll(q)];
+const initials = (name) => name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '?';
+const playerById = (id) => state.players.find(p => p.id === id);
+const courtById  = (id) => state.courts.find(c => c.id === id);
+
+/* ---------- api ---------- */
+async function api(path, opts = {}) {
+  const headers = { 'Content-Type': 'application/json', 'X-Group-Code': CODE };
+  const res = await fetch(path, { ...opts, headers });
+  if (res.status === 401) { logout(); throw new Error('unauthorized'); }
+  const text = await res.text();
+  const data = text ? JSON.parse(text) : {};
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+function toast(msg, err = false) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('err', !!err);
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function fmtDuration(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(s / 60);
+  return `${String(m).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+}
+function fmtSince(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m/60)}h ${m%60}m ago`;
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch])); }
+function escapeAttr(s) { return escapeHtml(s); }
+
+/* ---------- auth ---------- */
+async function tryCode(code) {
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    return res.ok;
+  } catch (e) { return false; }
+}
+
+$('#code-submit').onclick = async () => {
+  const code = $('#code-input').value.trim();
+  if (!code) return toast('Enter a code', true);
+  $('#code-submit').disabled = true;
+  const ok = await tryCode(code);
+  $('#code-submit').disabled = false;
+  if (!ok) return toast('Wrong code', true);
+  CODE = code;
+  localStorage.setItem(CODE_KEY, code);
+  showApp();
+};
+$('#code-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#code-submit').click(); });
+
+function logout() {
+  CODE = '';
+  localStorage.removeItem(CODE_KEY);
+  if (eventSource) { eventSource.close(); eventSource = null; }
+  $('#app').style.display = 'none';
+  $('#login').style.display = 'flex';
+  $('#code-input').value = '';
+}
+
+async function showApp() {
+  $('#login').style.display = 'none';
+  $('#app').style.display = 'flex';
+  try {
+    state = await api('/api/state');
+    render();
+    connectSSE();
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+/* ---------- SSE live sync ---------- */
+function connectSSE() {
+  if (eventSource) eventSource.close();
+  eventSource = new EventSource(`/api/events?code=${encodeURIComponent(CODE)}`);
+  eventSource.addEventListener('open', () => setConn(true));
+  eventSource.addEventListener('error', () => setConn(false));
+  eventSource.addEventListener('state', (ev) => {
+    try { state = JSON.parse(ev.data); render(); } catch (e) {}
+  });
+}
+function setConn(live) {
+  $('#connDot').classList.toggle('live', live);
+  $('#connDot').classList.toggle('off', !live);
+  $('#connText').textContent = live ? 'LIVE' : 'OFFLINE';
+}
+
+/* ---------- rendering ---------- */
+function render() {
+  renderSession();
+  renderPlayers();
+  renderCourts();
+  renderStats();
+  renderHeaderSub();
+  renderFab();
+}
+
+function renderHeaderSub() {
+  if (!state.session?.active) return;
+  const mins = Math.floor((Date.now() - state.session.startedAt) / 60000);
+  $('#connText').textContent = `SESSION · ${mins}M`;
+}
+
+/* =========== SESSION ============ */
+function renderSession() {
+  const root = $('#session-content');
+  if (!state.session?.active) {
+    const available = state.players.filter(p => p.available).length;
+    root.innerHTML = `
+      <div class="setup-card">
+        <div class="setup-title">START A SESSION</div>
+        <div class="setup-sub">Mark who's here, then auto-schedule matches for everyone.</div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">AVAILABLE</div><div class="stat-value"><span class="accent">${available}</span> / ${state.players.length}</div></div>
+          <div class="stat-card"><div class="stat-label">COURTS</div><div class="stat-value">${state.courts.length}</div></div>
+        </div>
+        <div class="field">
+          <label>SESSION DURATION (minutes)</label>
+          <input type="number" id="sessionDur" value="120" min="30" max="360" step="15" />
+        </div>
+        <button class="btn btn-primary btn-full" id="startSessionBtn">START SESSION & SCHEDULE</button>
+      </div>
+
+      <div class="section-title"><span class="section-title-inner">AVAILABLE TONIGHT</span></div>
+      ${state.players.length === 0
+        ? `<div class="empty"><div class="empty-title">NO PLAYERS YET</div><div class="empty-sub">Add your squash crew in the PLAYERS tab.</div></div>`
+        : state.players.map(p => `
+            <div class="player-row" onclick="toggleAvail(${p.id})">
+              <div class="player-avatar">${initials(p.name)}</div>
+              <div class="player-info">
+                <div class="player-name">${escapeHtml(p.name)}</div>
+                <div class="player-meta">${p.available ? 'READY' : 'NOT AVAILABLE'}</div>
+              </div>
+              <div class="rating-badge">${p.rating.toFixed(1)}</div>
+              <div class="avail-dot ${p.available ? 'on' : ''}"></div>
+            </div>`).join('')}
+    `;
+    const btn = $('#startSessionBtn');
+    if (btn) btn.onclick = startSession;
+    return;
+  }
+
+  const live   = state.matches.filter(m => m.status === 'live');
+  const queued = state.matches.filter(m => m.status === 'queued');
+  const done   = state.matches.filter(m => m.status === 'done');
+
+  root.innerHTML = `
+    <div class="setup-card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <div class="setup-title">SESSION LIVE</div>
+          <div class="setup-sub">Started ${fmtSince(state.session.startedAt)}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="confirmEndSession()">END</button>
+      </div>
+      <div class="stats-grid" style="margin-bottom:0;">
+        <div class="stat-card"><div class="stat-label">PLAYED</div><div class="stat-value">${done.length}</div></div>
+        <div class="stat-card"><div class="stat-label">QUEUED</div><div class="stat-value"><span class="accent">${queued.length}</span></div></div>
+      </div>
+    </div>
+
+    ${live.length ? `<div class="section-title"><span class="section-title-inner">ON COURT NOW</span></div>${live.map(renderMatchCard).join('')}` : ''}
+    ${queued.length ? `<div class="section-title"><span class="section-title-inner">UP NEXT</span></div>${queued.slice(0, 6).map(renderMatchCard).join('')}` : ''}
+    ${done.length ? `<div class="section-title"><span class="section-title-inner">RESULTS</span></div>${done.slice().reverse().slice(0, 5).map(renderMatchCard).join('')}` : ''}
+    ${live.length === 0 && queued.length === 0 && done.length === 0
+      ? `<div class="empty"><div class="empty-title">NO MATCHES</div><div class="empty-sub">Try adding courts or marking more players available.</div></div>` : ''}
+  `;
+}
+
+function renderMatchCard(m) {
+  const p1 = playerById(m.p1), p2 = playerById(m.p2), court = courtById(m.courtId);
+  if (!p1 || !p2) return '';
+  const cls = m.status === 'live' ? 'live' : m.status === 'done' ? 'done' : '';
+  let timeLabel = '';
+  if (m.status === 'live')      timeLabel = `<span class="match-court">${escapeHtml(court?.name || 'COURT')}</span> · <span id="live-timer-${m.id}">${fmtDuration(Date.now() - m.startedAt)}</span>`;
+  else if (m.status === 'done') timeLabel = `<span class="match-court">${escapeHtml(court?.name || 'COURT')}</span> · ${fmtDuration(m.endedAt - m.startedAt)}`;
+  else                          timeLabel = `<span class="match-court">${escapeHtml(court?.name || 'WAITING')}</span> · QUEUED`;
+
+  const p1Score = m.status === 'done' ? `<div class="match-score">${m.s1}</div>` : `<div class="rating">${p1.rating.toFixed(1)}</div>`;
+  const p2Score = m.status === 'done' ? `<div class="match-score">${m.s2}</div>` : `<div class="rating">${p2.rating.toFixed(1)}</div>`;
+
+  let actions = '';
+  if (m.status === 'queued') {
+    actions = `<div class="match-actions">
+      <button class="btn btn-ghost btn-sm" onclick="skipMatch(${m.id})">Skip</button>
+      <button class="btn btn-primary btn-sm" onclick="startMatch(${m.id})">Start match</button>
+    </div>`;
+  } else if (m.status === 'live') {
+    actions = `<div class="match-actions"><button class="btn btn-primary btn-sm btn-full" onclick="finishMatch(${m.id})">Finish & enter score</button></div>`;
+  }
+
+  return `
+    <div class="match-card ${cls}">
+      <div class="match-time">${timeLabel}</div>
+      <div class="match-players">
+        <div class="match-player"><div class="name">${escapeHtml(p1.name)}</div>${p1Score}</div>
+        <div class="match-vs">VS</div>
+        <div class="match-player"><div class="name">${escapeHtml(p2.name)}</div>${p2Score}</div>
+      </div>
+      ${actions}
+    </div>`;
+}
+
+/* =========== PLAYERS ============ */
+function renderPlayers() {
+  const root = $('#players-list');
+  if (state.players.length === 0) {
+    root.innerHTML = `<div class="empty"><div class="empty-title">NO PLAYERS</div><div class="empty-sub">Tap + to add players.</div></div>`;
+    return;
+  }
+  root.innerHTML = state.players.map(p => {
+    const played = state.matches.filter(m => m.status === 'done' && (m.p1 === p.id || m.p2 === p.id)).length;
+    const wins = state.matches.filter(m => m.status === 'done' && ((m.p1 === p.id && m.s1 > m.s2) || (m.p2 === p.id && m.s2 > m.s1))).length;
+    return `
+      <div class="player-row" onclick="openEditPlayer(${p.id})">
+        <div class="player-avatar">${initials(p.name)}</div>
+        <div class="player-info">
+          <div class="player-name">${escapeHtml(p.name)}</div>
+          <div class="player-meta">${played} PLAYED · ${wins}W / ${played - wins}L</div>
+        </div>
+        <div class="rating-badge">${p.rating.toFixed(1)}</div>
+      </div>`;
+  }).join('');
+}
+
+/* =========== COURTS ============ */
+function renderCourts() {
+  const root = $('#courts-list');
+  if (state.courts.length === 0) {
+    root.innerHTML = `<div class="empty"><div class="empty-title">NO COURTS</div><div class="empty-sub">Tap + to add courts.</div></div>`;
+    return;
+  }
+  root.innerHTML = state.courts.map(c => {
+    const inUse = state.matches.some(m => m.status === 'live' && m.courtId === c.id);
+    return `
+      <div class="court-card" onclick="openEditCourt(${c.id})">
+        <div class="court-icon">C${c.id}</div>
+        <div style="flex:1"><div style="font-weight:700">${escapeHtml(c.name)}</div><div class="player-meta">${inUse ? 'IN USE' : 'AVAILABLE'}</div></div>
+        <div class="avail-dot ${inUse ? '' : 'on'}"></div>
+      </div>`;
+  }).join('');
+}
+
+/* =========== STATS ============ */
+function renderStats() {
+  const root = $('#stats-content');
+  const rows = state.players.map(p => {
+    const ms = state.matches.filter(m => m.status === 'done' && (m.p1 === p.id || m.p2 === p.id));
+    const wins = ms.filter(m => (m.p1 === p.id && m.s1 > m.s2) || (m.p2 === p.id && m.s2 > m.s1)).length;
+    return { p, played: ms.length, wins, losses: ms.length - wins, pct: ms.length ? Math.round(wins / ms.length * 100) : 0 };
+  }).sort((a, b) => b.p.rating - a.p.rating);
+
+  if (rows.length === 0) {
+    root.innerHTML = `<div class="empty"><div class="empty-title">NO STATS YET</div><div class="empty-sub">Play some matches.</div></div>`;
+    return;
+  }
+  const totalMatches = state.matches.filter(m => m.status === 'done').length;
+  root.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">TOTAL MATCHES</div><div class="stat-value">${totalMatches}</div></div>
+      <div class="stat-card"><div class="stat-label">ROSTER</div><div class="stat-value">${state.players.length}</div></div>
+    </div>
+    ${rows.map((r, i) => `
+      <div class="rank-row">
+        <div class="rank-num">${i + 1}</div>
+        <div class="player-avatar">${initials(r.p.name)}</div>
+        <div><div style="font-weight:700">${escapeHtml(r.p.name)}</div><div class="player-meta">${r.p.rating.toFixed(1)} RATING · ${r.pct}% WIN</div></div>
+        <div class="rank-stats"><span class="w">${r.wins}W</span> / <span class="l">${r.losses}L</span></div>
+      </div>`).join('')}
+  `;
+}
+
+/* =========== TABS / FAB / MODAL ============ */
+function setView(name) {
+  currentView = name;
+  $$('.view').forEach(v => v.classList.toggle('active', v.id === `view-${name}`));
+  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+  renderFab();
+}
+$$('.tab').forEach(t => t.onclick = () => setView(t.dataset.view));
+
+function renderFab() {
+  const fab = $('#fab');
+  if (currentView === 'session' || currentView === 'stats') { fab.style.display = 'none'; return; }
+  fab.style.display = 'flex';
+  fab.onclick = () => {
+    if (currentView === 'players') openEditPlayer(null);
+    else if (currentView === 'courts') openEditCourt(null);
+  };
+}
+
+function openModal(html) { $('#modal-body').innerHTML = `<div class="modal-handle"></div>${html}`; $('#modal').classList.add('active'); }
+function closeModal()    { $('#modal').classList.remove('active'); }
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+
+/* =========== ACTIONS ============ */
+async function toggleAvail(id) {
+  const p = playerById(id); if (!p) return;
+  try { await api(`/api/players/${id}`, { method: 'PATCH', body: JSON.stringify({ available: !p.available }) }); }
+  catch (e) { toast(e.message, true); }
+}
+
+function openEditPlayer(id) {
+  const p = id ? playerById(id) : null;
+  openModal(`
+    <div class="modal-title">${p ? 'EDIT PLAYER' : 'ADD PLAYER'}</div>
+    <div class="field"><label>NAME</label><input id="p-name" type="text" value="${p ? escapeAttr(p.name) : ''}" placeholder="e.g. Tayyab" autofocus /></div>
+    <div class="field"><label>RATING (1.0 – 7.0)</label><input id="p-rating" type="number" min="1" max="7" step="0.1" value="${p ? p.rating : '3.5'}" /></div>
+    <div class="field" style="display:flex; align-items:center; gap:10px;">
+      <input id="p-avail" type="checkbox" ${(!p || p.available) ? 'checked' : ''} style="width:auto; margin:0;" />
+      <label for="p-avail" style="margin:0; text-transform:none; font-size:14px; color:var(--ink);">Available for current/next session</label>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="savePlayer(${p?.id ?? 'null'})">SAVE</button>
+    ${p ? `<button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="deletePlayer(${p.id})">Delete player</button>` : ''}
+  `);
+}
+
+async function savePlayer(id) {
+  const name = $('#p-name').value.trim();
+  const rating = parseFloat($('#p-rating').value) || 3.5;
+  const available = $('#p-avail').checked;
+  if (!name) return toast('Name required', true);
+  try {
+    if (id) await api(`/api/players/${id}`, { method: 'PATCH', body: JSON.stringify({ name, rating, available }) });
+    else    await api('/api/players', { method: 'POST', body: JSON.stringify({ name, rating, available }) });
+    closeModal();
+    toast(id ? 'Player updated' : 'Player added');
+  } catch (e) { toast(e.message, true); }
+}
+
+async function deletePlayer(id) {
+  if (!confirm('Delete this player?')) return;
+  try { await api(`/api/players/${id}`, { method: 'DELETE' }); closeModal(); toast('Removed'); }
+  catch (e) { toast(e.message, true); }
+}
+
+function openEditCourt(id) {
+  const c = id ? courtById(id) : null;
+  openModal(`
+    <div class="modal-title">${c ? 'EDIT COURT' : 'ADD COURT'}</div>
+    <div class="field"><label>COURT NAME</label><input id="c-name" type="text" value="${c ? escapeAttr(c.name) : ''}" placeholder="e.g. Court 1 · Club" autofocus /></div>
+    <button class="btn btn-primary btn-full" onclick="saveCourt(${c?.id ?? 'null'})">SAVE</button>
+    ${c ? `<button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="deleteCourt(${c.id})">Delete court</button>` : ''}
+  `);
+}
+
+async function saveCourt(id) {
+  const name = $('#c-name').value.trim();
+  if (!name) return toast('Name required', true);
+  try {
+    if (id) await api(`/api/courts/${id}`, { method: 'PATCH', body: JSON.stringify({ name }) });
+    else    await api('/api/courts', { method: 'POST', body: JSON.stringify({ name }) });
+    closeModal(); toast('Saved');
+  } catch (e) { toast(e.message, true); }
+}
+
+async function deleteCourt(id) {
+  if (!confirm('Delete this court?')) return;
+  try { await api(`/api/courts/${id}`, { method: 'DELETE' }); closeModal(); toast('Removed'); }
+  catch (e) { toast(e.message, true); }
+}
+
+async function startSession() {
+  const dur = parseInt($('#sessionDur').value) || 120;
+  try { await api('/api/session/start', { method: 'POST', body: JSON.stringify({ sessionDuration: dur }) }); toast('Session started'); }
+  catch (e) { toast(e.message, true); }
+}
+
+async function confirmEndSession() {
+  if (!confirm('End the session? Queued & live matches will be cleared.')) return;
+  try { await api('/api/session/end', { method: 'POST' }); toast('Session ended'); }
+  catch (e) { toast(e.message, true); }
+}
+
+async function startMatch(id) {
+  try { await api(`/api/matches/${id}/start`, { method: 'POST' }); toast('Match started'); }
+  catch (e) { toast(e.message, true); }
+}
+
+async function skipMatch(id) {
+  try { await api(`/api/matches/${id}/skip`, { method: 'POST' }); }
+  catch (e) { toast(e.message, true); }
+}
+
+function finishMatch(id) {
+  const m = state.matches.find(x => x.id === id); if (!m) return;
+  const p1 = playerById(m.p1), p2 = playerById(m.p2);
+  openModal(`
+    <div class="modal-title">ENTER SCORE</div>
+    <div class="timer-label">MATCH DURATION</div>
+    <div class="timer-display">${fmtDuration(Date.now() - m.startedAt)}</div>
+    <div class="score-input-row">
+      <div class="score-input-name">${escapeHtml(p1.name)}</div>
+      <div></div>
+      <div class="score-input-name">${escapeHtml(p2.name)}</div>
+    </div>
+    <div class="score-input-row score-input">
+      <input id="s1" type="number" inputmode="numeric" min="0" max="99" value="11" />
+      <div class="score-input-dash">–</div>
+      <input id="s2" type="number" inputmode="numeric" min="0" max="99" value="0" />
+    </div>
+    <div class="divider"></div>
+    <button class="btn btn-primary btn-full" onclick="saveScore(${id})">CONFIRM RESULT</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:8px" onclick="cancelMatch(${id})">Cancel match (no result)</button>
+  `);
+}
+
+async function saveScore(id) {
+  const s1 = parseInt($('#s1').value), s2 = parseInt($('#s2').value);
+  if (!Number.isFinite(s1) || !Number.isFinite(s2) || s1 < 0 || s2 < 0) return toast('Enter valid scores', true);
+  if (s1 === s2) return toast('No ties', true);
+  try { await api(`/api/matches/${id}/finish`, { method: 'POST', body: JSON.stringify({ s1, s2 }) }); closeModal(); toast('Result saved'); }
+  catch (e) { toast(e.message, true); }
+}
+
+async function cancelMatch(id) {
+  try { await api(`/api/matches/${id}`, { method: 'DELETE' }); closeModal(); toast('Cancelled'); }
+  catch (e) { toast(e.message, true); }
+}
+
+/* live timer tick */
+setInterval(() => {
+  if (!state.session?.active) return;
+  state.matches.filter(m => m.status === 'live').forEach(m => {
+    const el = document.getElementById(`live-timer-${m.id}`);
+    if (el) el.textContent = fmtDuration(Date.now() - m.startedAt);
+  });
+  const mins = Math.floor((Date.now() - state.session.startedAt) / 60000);
+  if ($('#connDot').classList.contains('live')) $('#connText').textContent = `SESSION · ${mins}M`;
+}, 1000);
+
+/* ---------- PWA ---------- */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+/* ---------- boot ---------- */
+(async () => {
+  if (CODE && await tryCode(CODE)) { showApp(); }
+  else { logout(); }
+})();
+</script>
+</body>
+</html>
